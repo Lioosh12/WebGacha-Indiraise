@@ -1,0 +1,195 @@
+<html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unbox The Journey</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+  <style>
+    .bg-gacha {
+      position: relative;
+      overflow: hidden;
+      min-height: 100vh;
+      isolation: isolate;
+    }
+    .bg-gacha::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: url(BG-WebLS.jpg) repeat-x center top;
+      background-size: auto 100%;
+      transform: scale(1.1);
+      z-index: -1
+    }
+    @media (min-width: 768px) {
+      .bg-gacha::before {
+        background: url("BG-Desktop.jpg") no-repeat center center;
+        background-size: auto 100%;
+      }
+    }
+    .rainbow-text {
+      background: linear-gradient(#2340b5);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .slot-animation {
+      font-size: 2rem;
+      height: 2.5rem;
+      overflow: hidden;
+      position: relative;
+    }
+    .slot-animation span {
+      display: block;
+      animation: slotSpin 1s ease-in-out infinite;
+    }
+    @keyframes slotSpin {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-100%); }
+    }
+  </style>
+</head>
+<body class="bg-gacha min-h-screen flex flex-col items-center justify-center p-4">
+  <div class="bg-white p-8 rounded-2xl shadow-2xl max-w-md w-full text-center">
+    <h1 class="text-4xl font-extrabold rainbow-text mb-4 animate-bounce">Unbox The Journey</h1>
+    <p id="gachaCount" class="text-lg font-bold text-gray-700 mb-4">Chances Left: 3</p>
+ <button id="gachaButton" 
+  class="relative px-6 py-3 rounded-full text-xl font-bold 
+         text-blue shadow-md hover:scale-105 transform transition
+         border-4 border-transparent bg-gradient-to-r from-white via-white to-white
+         bg-clip-padding before:absolute before:inset-0 
+         before:rounded-full before:p-[3px] 
+         before:bg-gradient-to-r before:from-indigo-600 before:via-blue-500 before:to-cyan-400 
+         before:-z-10 before:blur-sm">Unbox
+</button>
+    <div id="slot" class="text-purple-800 font-bold my-4 mb-10"></div>
+    <div id="result" class="mt-2 text-2xl text-purple-800 font-semibold"></div>
+    <div id="collection" class="mt-6 text-left text-sm text-gray-800"><p>Your collection will appear here</p></div>
+  </div>
+
+  <audio id="gachaSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c0f5b8c9c6.mp3?filename=success-1-6297.mp3"></audio>
+
+<script>
+  const items = {
+    tier1: [
+      { name: "Hagavi", img: "hagavi.png" },
+      { name: "Mangekyou", img: "mangekyou.png" },
+      { name: "NTMY", img: "ntmy.png" },
+    ],
+    tier2: [
+      { name: "Junjou Shugi", img: "junjou.png" },
+      { name: "Kagami no Naka no Jeanne D’arc", img: "kagami.png" },
+      { name: "Manatsu no Christmas Rose", img: "manakuri.png" },
+    ],
+    tier3: [
+      { name: "RKJ", img: "rkj.png" },
+      { name: "Tsundere", img: "tsundere.png" },
+      { name: "Finland Miracle", img: "finland.png" },
+    ],
+    tier4: [
+      { name: "Tenshi no Shippo", img: "tns.png" },
+      { name: "Glory Days", img: "glory.png" },
+      { name: "Onna No Ko No Dairokan", img: "dairokkan.png" },
+    ],
+    tier5: [
+      { name: "Arashi No Yoru ni Wo", img: "arashi.png" },
+      { name: "7ji 12fun no Hatsukoi", img: "712.png" },
+    ],
+    whatIf: [
+      { name: "Balerrina", img: "ballerina.png" },
+    ]
+  };
+
+    const probabilities = [
+      { tier: "tier1", weight: 300 },
+      { tier: "tier2", weight: 250 },
+      { tier: "tier3", weight: 180 },
+      { tier: "tier4", weight: 120 },
+      { tier: "tier5", weight: 100 },
+      { tier: "whatIf", weight: 50 }
+    ];
+
+    let gachaCount = parseInt(localStorage.getItem("gachaCount") || "3");
+    let collection = JSON.parse(localStorage.getItem("gachaCollection") || "[]");
+
+    document.getElementById("gachaCount").textContent = `Chance(s) Left: ${gachaCount}`;
+    renderCollection();
+
+    document.getElementById("gachaButton").addEventListener("click", async () => {
+      if (gachaCount <= 0) {
+        alert("Kamu sudah mencapai batas 3x gacha.");
+        return;
+      }
+
+      const slotEl = document.getElementById("slot");
+      const resultEl = document.getElementById("result");
+      const gachaSound = document.getElementById("gachaSound");
+      slotEl.innerHTML = "";
+      resultEl.innerHTML = "";
+
+      let spinner = setInterval(() => {
+        const allItems = Object.values(items).flat();
+        const rand = allItems[Math.floor(Math.random() * allItems.length)];
+      slotEl.innerHTML = `
+      <div class="text-center">
+        ${rand.name} <br>
+        <img src="${rand.img}" class="mx-auto mt-2 w-32 rounded-lg shadow">
+      </div>`;
+      }, 100);
+
+      await new Promise(res => setTimeout(res, 5000));
+      clearInterval(spinner);
+
+      const item = getRandomItem();
+      slotEl.innerHTML = '';
+      resultEl.innerHTML = `
+      🎉 You Got: ${item.name}!
+      <img src="${item.img}" class="mx-auto mt-2 w-70 rounded-xl">
+      `;
+
+      gachaCount--;
+      localStorage.setItem("gachaCount", gachaCount);
+      document.getElementById("gachaCount").textContent = `Chances Left: ${gachaCount}`;
+
+      collection.push(item);
+      localStorage.setItem("gachaCollection", JSON.stringify(collection));
+      renderCollection();
+
+      gachaSound.play();
+
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+    });
+
+    function getRandomItem() {
+      const totalWeight = probabilities.reduce((acc, obj) => acc + obj.weight, 0);
+      let random = Math.random() * totalWeight;
+      for (const prob of probabilities) {
+        if (random < prob.weight) {
+          const list = items[prob.tier];
+          return list[Math.floor(Math.random() * list.length)];
+        }
+        random -= prob.weight;
+      }
+    }
+
+    function renderCollection() {
+      const container = document.getElementById("collection");
+      if (collection.length === 0) {
+        container.innerHTML = "<p>Your collection will appear here.</p>";
+      } else {
+        container.innerHTML = "<h3 class='font-bold mb-2'>🎒 My Collection:</h3><ul class='list-disc list-inside'>" +
+          collection.map(item => {
+            const isWhatIf = items.whatIf.includes(item);
+            return `<li${isWhatIf ? " style='color:gold;font-weight:bold'" : ""}> 
+              ${item.name} <img src="${item.img}" class="inline w-14 ml-2 rounded">
+            </li>`;
+          }).join('') +
+          "</ul>";
+      }
+    }
+  </script>
+
+
+</body></html>
