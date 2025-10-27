@@ -8,3 +8,18 @@ services:
       - "8081:80"
     volumes:
       - .:/usr/share/nginx/html
+
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock   # biar Jenkins bisa akses Docker host
+      - /usr/bin/docker:/usr/bin/docker             # biar Jenkins bisa build image Docker
+    privileged: true
+    
+volumes:
+  jenkins_home:
