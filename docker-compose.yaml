@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: webgacha-indiraise
+    ports:
+      - "8081:80"
+    volumes:
+      - .:/usr/share/nginx/html
