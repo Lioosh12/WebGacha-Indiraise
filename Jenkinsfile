@@ -12,14 +12,14 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 // build image docker dari Dockerfile
-                sh 'docker compose build'
+                bat 'docker compose build'
             }
         }
 
         stage('Run Container') {
             steps {
                 // stop container lama, jalankan yang baru
-                sh '''
+                bat '''
                 docker compose down
                 docker compose up -d
                 '''
